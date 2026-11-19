@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { BarChart3, ReceiptText } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
-import { CategoryIcon } from '../components/CategoryIcon'
-import { EmptyState, ErrorState, PageHeader, Spinner } from '../components/ui'
-import { fetchExpenses } from '../lib/api'
-import type { ExpenseCategory } from '../lib/types'
+import { CategoryIcon } from '../shared/CategoryIcon'
+import { EmptyState, ErrorState, PageHeader, Spinner } from '../shared/ui'
+import { fetchExpenses } from '../expenses/api'
+import type { ExpenseCategory } from '../expenses/types'
 import {
   CATEGORY_LABELS,
   EXPENSE_CATEGORIES,
@@ -14,7 +14,7 @@ import {
   formatDate,
   money,
   monthRange,
-} from '../lib/utils'
+} from '../shared/utils'
 
 const COLORS = ['#ea580c', '#0ea5e9', '#16a34a', '#a855f7', '#eab308', '#64748b']
 

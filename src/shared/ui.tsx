@@ -1,7 +1,7 @@
 import { useEffect, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { AlertTriangle, Inbox, Loader2, RefreshCw, X } from 'lucide-react'
-import { cn } from '../lib/utils'
-import type { ApprovalStatus, ExpenseStatus } from '../lib/types'
+import { cn } from './utils'
+import type { ApprovalStatus, ExpenseStatus } from './types'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type ButtonSize = 'sm' | 'md' | 'lg'

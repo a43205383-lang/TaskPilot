@@ -3,8 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import App from './App'
-import { AuthProvider } from './auth/AuthProvider'
-import { queryClient } from './lib/queryClient'
+import { AuthProvider } from '../auth/AuthProvider'
+import { queryClient } from '../shared/queryClient'
 import './index.css'
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {

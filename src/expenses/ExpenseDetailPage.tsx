@@ -14,8 +14,8 @@ import {
   Users,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
-import { CategoryIcon } from '../components/CategoryIcon'
-import { ReceiptViewer } from '../components/ReceiptViewer'
+import { CategoryIcon } from '../shared/CategoryIcon'
+import { ReceiptViewer } from '../shared/ReceiptViewer'
 import {
   ApprovalBadge,
   Banner,
@@ -24,21 +24,17 @@ import {
   Modal,
   Spinner,
   StatusBadge,
-} from '../components/ui'
-import { useSignedUrls } from '../hooks/useSignedUrls'
-import {
-  deleteExpense,
-  fetchExpense,
-  fetchExpenseItems,
-  fetchProfilesByIds,
-} from '../lib/api'
+} from '../shared/ui'
+import { useSignedUrls } from '../shared/useSignedUrls'
+import { deleteExpense, fetchExpense, fetchExpenseItems } from './api'
+import { fetchProfilesByIds } from '../auth/api'
 import {
   APPROVAL_LABELS,
   CATEGORY_LABELS,
   errorMessage,
   formatDate,
   money,
-} from '../lib/utils'
+} from '../shared/utils'
 
 export function ExpenseDetailPage() {
   const { id } = useParams<{ id: string }>()

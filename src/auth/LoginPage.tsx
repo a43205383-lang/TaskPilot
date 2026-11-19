@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { LockKeyhole, Mail, ReceiptText, UserRound } from 'lucide-react'
-import { useAuth } from '../auth/AuthProvider'
-import { Banner, Button } from '../components/ui'
+import { useAuth } from './AuthProvider'
+import { Banner, Button } from '../shared/ui'
 
 export function LoginPage() {
   const { session, signIn, signUp } = useAuth()

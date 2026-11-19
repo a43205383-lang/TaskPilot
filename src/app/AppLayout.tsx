@@ -9,7 +9,7 @@ import {
   WifiOff,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
-import { cn } from '../lib/utils'
+import { cn } from '../shared/utils'
 
 export function AppLayout() {
   const { isAccountant, profile } = useAuth()

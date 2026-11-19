@@ -9,9 +9,9 @@ import {
   UserRound,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
-import { Button, PageHeader, Spinner } from '../components/ui'
-import { fetchAiUsageToday } from '../lib/api'
-import { formatDate } from '../lib/utils'
+import { Button, PageHeader, Spinner } from '../shared/ui'
+import { fetchAiUsageToday } from './api'
+import { formatDate } from '../shared/utils'
 
 const DAILY_LIMIT = 30
 

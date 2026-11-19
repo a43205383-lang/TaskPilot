@@ -12,24 +12,19 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
-import { CategoryIcon } from '../components/CategoryIcon'
-import { ReceiptViewer } from '../components/ReceiptViewer'
+import { CategoryIcon } from '../shared/CategoryIcon'
+import { ReceiptViewer } from '../shared/ReceiptViewer'
 import {
   Banner,
   Button,
   ConfidenceBadge,
   ErrorState,
   Spinner,
-} from '../components/ui'
-import { useSignedUrls } from '../hooks/useSignedUrls'
-import {
-  fetchExpense,
-  fetchExpenseItems,
-  findSimilarExpenses,
-  replaceItems,
-  updateExpense,
-} from '../lib/api'
-import type { Expense, ExpenseCategory, ExpenseItem, Currency } from '../lib/types'
+} from '../shared/ui'
+import { useSignedUrls } from '../shared/useSignedUrls'
+import { findSimilarExpenses, replaceItems } from './api'
+import { fetchExpense, fetchExpenseItems, updateExpense } from '../expenses/api'
+import type { Expense, ExpenseCategory, ExpenseItem, Currency } from '../expenses/types'
 import {
   APPROVAL_LABELS,
   CATEGORY_LABELS,
@@ -40,7 +35,7 @@ import {
   money,
   round2,
   toNumber,
-} from '../lib/utils'
+} from '../shared/utils'
 
 interface FormState {
   merchant: string

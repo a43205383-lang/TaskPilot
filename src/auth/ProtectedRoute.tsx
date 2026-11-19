@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { useAuth } from '../auth/AuthProvider'
-import { ErrorState, Spinner } from './ui'
+import { useAuth } from './AuthProvider'
+import { ErrorState, Spinner } from '../shared/ui'
 
 export function ProtectedRoute() {
   const { session, loading, profile, profileLoading, signOut } = useAuth()

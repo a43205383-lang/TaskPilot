@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { signReceiptPaths } from '../lib/api'
+import { signReceiptPaths } from './api'
 
 export function useSignedUrls(paths: Array<string | null | undefined>): Record<string, string> {
   const unique = useMemo(

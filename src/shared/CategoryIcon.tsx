@@ -7,8 +7,8 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react'
-import type { ExpenseCategory } from '../lib/types'
-import { cn } from '../lib/utils'
+import type { ExpenseCategory } from './types'
+import { cn } from './utils'
 
 const icons: Record<ExpenseCategory, LucideIcon> = {
   alimentos: Beef,

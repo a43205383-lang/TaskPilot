@@ -10,7 +10,7 @@ import {
   X,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
-import { CategoryIcon } from '../components/CategoryIcon'
+import { CategoryIcon } from '../shared/CategoryIcon'
 import {
   ApprovalBadge,
   Button,
@@ -19,20 +19,20 @@ import {
   PageHeader,
   Spinner,
   StatusBadge,
-} from '../components/ui'
-import { useSignedUrls } from '../hooks/useSignedUrls'
-import { fetchExpenses } from '../lib/api'
-import type { ExpenseCategory, ExpenseFilters, ExpenseWithReceipt } from '../lib/types'
+} from '../shared/ui'
+import { useSignedUrls } from '../shared/useSignedUrls'
+import { fetchExpenses } from './api'
+import type { ExpenseCategory, ExpenseFilters, ExpenseWithReceipt } from './types'
+import { expensesToCsv } from './csv'
 import {
   CATEGORY_LABELS,
   EXPENSE_CATEGORIES,
   cn,
   downloadTextFile,
-  expensesToCsv,
   formatDate,
   money,
   todayISO,
-} from '../lib/utils'
+} from '../shared/utils'
 
 export function ExpensesPage() {
   const { session, isAccountant } = useAuth()

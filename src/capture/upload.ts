@@ -1,4 +1,4 @@
-import { SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from './supabase'
+import { SUPABASE_ANON_KEY, SUPABASE_URL, supabase } from '../shared/supabase'
 
 function encodePath(path: string): string {
   return path.split('/').map(encodeURIComponent).join('/')

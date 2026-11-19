@@ -12,20 +12,16 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
-import { Banner, Button, Modal } from '../components/ui'
-import { compressReceipt, sha256Hex } from '../lib/image'
-import { uploadReceipt } from '../lib/upload'
-import {
-  applyExtraction,
-  createDraftExpense,
-  findDuplicateByHash,
-  registerReceiptImage,
-  updateExpense,
-} from '../lib/api'
-import { supabase } from '../lib/supabase'
-import { formatDate, money, errorMessage } from '../lib/utils'
-import { queryClient } from '../lib/queryClient'
-import type { ExtractResponse } from '../lib/types'
+import { Banner, Button, Modal } from '../shared/ui'
+import { compressReceipt, sha256Hex } from './image'
+import { uploadReceipt } from './upload'
+import { createDraftExpense, findDuplicateByHash, registerReceiptImage } from './api'
+import { applyExtraction } from '../extraction/api'
+import { updateExpense } from '../expenses/api'
+import { supabase } from '../shared/supabase'
+import { formatDate, money, errorMessage } from '../shared/utils'
+import { queryClient } from '../shared/queryClient'
+import type { ExtractResponse } from '../extraction/types'
 
 type Duplicate = {
   id: string

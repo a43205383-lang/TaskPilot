@@ -8,10 +8,10 @@ import {
   type ReactNode,
 } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
-import { fetchProfile } from '../lib/api'
-import { queryClient } from '../lib/queryClient'
-import type { Profile } from '../lib/types'
+import { supabase } from '../shared/supabase'
+import { fetchProfile } from './api'
+import { queryClient } from '../shared/queryClient'
+import type { Profile } from './types'
 
 interface AuthContextValue {
   session: Session | null

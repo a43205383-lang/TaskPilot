@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, ReceiptText, ShieldCheck, X } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
-import { CategoryIcon } from '../components/CategoryIcon'
+import { CategoryIcon } from '../shared/CategoryIcon'
 import {
   Banner,
   Button,
@@ -12,17 +12,20 @@ import {
   Modal,
   PageHeader,
   Spinner,
-} from '../components/ui'
-import { useSignedUrls } from '../hooks/useSignedUrls'
-import { fetchExpenses, fetchProfilesByIds, setApproval } from '../lib/api'
-import type { ApprovalStatus, ExpenseWithReceipt } from '../lib/types'
+} from '../shared/ui'
+import { useSignedUrls } from '../shared/useSignedUrls'
+import { setApproval } from './api'
+import { fetchExpenses } from '../expenses/api'
+import { fetchProfilesByIds } from '../auth/api'
+import type { ApprovalStatus } from '../shared/types'
+import type { ExpenseWithReceipt } from '../expenses/types'
 import {
   CATEGORY_LABELS,
   cn,
   errorMessage,
   formatDate,
   money,
-} from '../lib/utils'
+} from '../shared/utils'
 
 const TABS: Array<{ value: ApprovalStatus; label: string }> = [
   { value: 'pending', label: 'Por aprobar' },
