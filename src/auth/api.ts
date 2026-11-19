@@ -11,13 +11,11 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
   return (data as Profile | null) ?? null
 }
 
-export async function fetchProfilesByIds(ids: string[]): Promise<Record<string, Profile>> {
-  const unique = Array.from(new Set(ids.filter(Boolean)))
-  if (unique.length === 0) return {}
+export async function fetchProfiles(): Promise<Profile[]> {
   const { data, error } = await supabase
     .from('profiles')
     .select('id, full_name, role, created_at, updated_at')
-    .in('id', unique)
+    .order('full_name', { ascending: true, nullsFirst: false })
   if (error) throw error
-  return Object.fromEntries(((data ?? []) as Profile[]).map((profile) => [profile.id, profile]))
+  return (data ?? []) as Profile[]
 }

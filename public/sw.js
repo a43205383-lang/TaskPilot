@@ -2,7 +2,7 @@
  * No cachea respuestas de Supabase (datos privados por usuario).
  * Sube CACHE_VERSION al desplegar cambios importantes.
  */
-const CACHE_VERSION = 'recibos-ai-v1'
+const CACHE_VERSION = 'taskpilot-v1'
 const APP_SHELL = [
   '/',
   '/index.html',

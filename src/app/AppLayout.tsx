@@ -1,128 +1,105 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import {
-  ChartPie,
-  Plus,
-  ReceiptText,
-  ShieldCheck,
-  UserRound,
-  WifiOff,
-} from 'lucide-react'
+import { CheckSquare2, MessageCircle, UserRound, Users } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
-import { cn } from '../shared/utils'
-
-export function AppLayout() {
-  const { isAccountant, profile } = useAuth()
-  const [online, setOnline] = useState(navigator.onLine)
-
-  useEffect(() => {
-    const update = () => setOnline(navigator.onLine)
-    window.addEventListener('online', update)
-    window.addEventListener('offline', update)
-    return () => {
-      window.removeEventListener('online', update)
-      window.removeEventListener('offline', update)
-    }
-  }, [])
-
-  return (
-    <div className="min-h-dvh bg-stone-50">
-      <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-stone-50/90 backdrop-blur">
-        <div className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between gap-3 px-4">
-          <div className="flex items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm">
-              <ReceiptText className="size-5" aria-hidden />
-            </div>
-            <div className="leading-tight">
-              <p className="text-sm font-bold tracking-tight">TaskPilot</p>
-              <p className="text-[11px] text-stone-500">
-                {profile?.full_name ? profile.full_name : 'Gastos de la empresa'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {!online ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800">
-                <WifiOff className="size-3.5" aria-hidden />
-                Sin conexión
-              </span>
-            ) : null}
-            {isAccountant ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-1 text-[11px] font-semibold text-brand-700">
-                <ShieldCheck className="size-3.5" aria-hidden />
-                Contador
-              </span>
-            ) : null}
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-2xl px-4 pb-28 pt-4">
-        <Outlet />
-      </main>
-
-      <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 pt-1.5 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-2xl items-end justify-around px-2">
-          <NavItem to="/" label="Gastos" icon={ReceiptText} end />
-          <NavItem to="/summary" label="Resumen" icon={ChartPie} />
-          <NavLink
-            to="/capture"
-            className={({ isActive }) =>
-              cn(
-                'flex min-w-16 flex-col items-center gap-0.5 pb-1 text-[11px] font-semibold transition',
-                isActive ? 'text-brand-700' : 'text-stone-500',
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <span
-                  className={cn(
-                    '-mt-5 flex size-13 items-center justify-center rounded-full border-4 border-stone-50 shadow-lg transition',
-                    isActive ? 'bg-brand-700 text-white' : 'bg-brand-600 text-white',
-                  )}
-                >
-                  <Plus className="size-6" aria-hidden />
-                </span>
-                <span>Capturar</span>
-              </>
-            )}
-          </NavLink>
-          {isAccountant ? (
-            <NavItem to="/approvals" label="Contador" icon={ShieldCheck} />
-          ) : null}
-          <NavItem to="/account" label="Cuenta" icon={UserRound} />
-        </div>
-      </nav>
-    </div>
-  )
-}
+import { cn, initials, ROLE_LABELS } from '../shared/utils'
+import { useOnline } from '../shared/useOnline'
 
 function NavItem({
   to,
   label,
-  icon: Icon,
-  end = false,
+  icon,
 }: {
   to: string
   label: string
-  icon: typeof ReceiptText
-  end?: boolean
+  icon: ReactNode
 }) {
   return (
     <NavLink
       to={to}
-      end={end}
       className={({ isActive }) =>
         cn(
-          'flex min-w-16 flex-col items-center gap-0.5 rounded-lg px-2 pb-1.5 pt-1 text-[11px] font-medium transition',
-          isActive ? 'text-brand-700' : 'text-stone-500 hover:text-stone-700',
+          'flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-[11px] font-semibold transition',
+          isActive ? 'bg-brand-50 text-brand-700' : 'text-stone-500 hover:bg-stone-50',
         )
       }
     >
-      <Icon className="size-5" aria-hidden />
-      <span>{label}</span>
+      {icon}
+      {label}
     </NavLink>
+  )
+}
+
+export function AppLayout() {
+  const { profile, session, isSupervisor, signOut } = useAuth()
+  const online = useOnline()
+  const [timezone, setTimezone] = useState<string>(() =>
+    localStorage.getItem('tareas:timezone') ?? 'America/Santo_Domingo',
+  )
+
+  useEffect(() => {
+    const onStorage = () => {
+      setTimezone(localStorage.getItem('tareas:timezone') ?? 'America/Santo_Domingo')
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
+  const name = profile?.full_name || session?.user.email?.split('@')[0] || 'Usuario'
+
+  return (
+    <div className="min-h-dvh bg-stone-50">
+      <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-lg items-center justify-between gap-2 px-3 py-2.5">
+          <div className="flex items-center gap-2">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-brand-600 text-white">
+              <CheckSquare2 className="size-5" aria-hidden />
+            </span>
+            <div className="leading-tight">
+              <p className="text-sm font-bold text-stone-900">TaskPilot</p>
+              <p className="text-[11px] text-stone-500">{timezone.replace('_', ' ')}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="text-right leading-tight">
+              <p className="max-w-28 truncate text-xs font-semibold text-stone-800">{name}</p>
+              <p className="text-[10px] text-stone-500">
+                {profile ? ROLE_LABELS[profile.role] : '…'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="flex size-9 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800"
+              aria-label="Cerrar sesión"
+              title={name}
+            >
+              {initials(profile?.full_name, session?.user.email)}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {!online ? (
+        <div className="bg-amber-100 px-3 py-1.5 text-center text-xs font-semibold text-amber-900">
+          Sin conexión · mostrando las últimas tareas guardadas
+        </div>
+      ) : null}
+
+      <main className="mx-auto w-full max-w-lg px-3 pb-28 pt-4">
+        <Outlet />
+      </main>
+
+      <nav className="safe-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-stone-200 bg-white/95 px-2 pt-1.5 backdrop-blur">
+        <div className="mx-auto flex max-w-lg gap-1">
+          <NavItem to="/tasks" label="Tareas" icon={<CheckSquare2 className="size-5" />} />
+          <NavItem to="/chat" label="Chat" icon={<MessageCircle className="size-5" />} />
+          {isSupervisor ? (
+            <NavItem to="/team" label="Equipo" icon={<Users className="size-5" />} />
+          ) : null}
+          <NavItem to="/profile" label="Perfil" icon={<UserRound className="size-5" />} />
+        </div>
+      </nav>
+    </div>
   )
 }

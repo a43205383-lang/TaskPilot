@@ -1,17 +1,11 @@
-// Enums y constantes usados por la UI compartida y por varios dominios.
+// Enums y constantes del dominio, compartidos entre la UI y las features.
 
-export const EXPENSE_CATEGORIES = [
-  'alimentos',
-  'combustible',
-  'transporte',
-  'oficina',
-  'servicios',
-  'otros',
-] as const
+export type AppRole = 'employee' | 'supervisor'
+export type TaskStatus = 'pending' | 'in_progress' | 'done'
+export type TaskPriority = 'low' | 'medium' | 'high'
 
-export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]
+export const TASK_STATUSES: TaskStatus[] = ['pending', 'in_progress', 'done']
+export const TASK_PRIORITIES: TaskPriority[] = ['low', 'medium', 'high']
 
-export type AppRole = 'employee' | 'accountant'
-export type ExpenseStatus = 'draft' | 'confirmed' | 'requires_review'
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
-export type Currency = 'DOP' | 'USD'
+/** Zona horaria por defecto del brief (República Dominicana). */
+export const DEFAULT_TIMEZONE = 'America/Santo_Domingo'

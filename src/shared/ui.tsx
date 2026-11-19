@@ -1,7 +1,7 @@
 import { useEffect, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { AlertTriangle, Inbox, Loader2, RefreshCw, X } from 'lucide-react'
-import { cn } from './utils'
-import type { ApprovalStatus, ExpenseStatus } from './types'
+import { cn, TASK_PRIORITY_LABELS, TASK_STATUS_LABELS } from './utils'
+import type { TaskPriority, TaskStatus } from './types'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type ButtonSize = 'sm' | 'md' | 'lg'
@@ -67,59 +67,45 @@ export function Label({ children, aside }: { children: ReactNode; aside?: ReactN
   )
 }
 
-export function ConfidenceBadge({ value }: { value: number | undefined }) {
-  if (typeof value !== 'number') return null
-  const low = value < 0.7
+export function FieldError({ message }: { message?: string | null }) {
+  if (!message) return null
+  return <p className="mt-1 text-xs font-medium text-red-600">{message}</p>
+}
+
+const statusStyles: Record<TaskStatus, string> = {
+  pending: 'bg-stone-100 text-stone-700',
+  in_progress: 'bg-sky-50 text-sky-700',
+  done: 'bg-emerald-50 text-emerald-700',
+}
+
+const priorityStyles: Record<TaskPriority, string> = {
+  low: 'bg-stone-100 text-stone-600',
+  medium: 'bg-amber-100 text-amber-800',
+  high: 'bg-red-50 text-red-700',
+}
+
+export function TaskStatusBadge({ status }: { status: TaskStatus }) {
   return (
     <span
       className={cn(
         'rounded-full px-2 py-0.5 text-[11px] font-semibold',
-        low ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700',
+        statusStyles[status],
       )}
     >
-      {Math.round(value * 100)}%
+      {TASK_STATUS_LABELS[status]}
     </span>
   )
 }
 
-const statusStyles: Record<ExpenseStatus, string> = {
-  draft: 'bg-stone-100 text-stone-700',
-  confirmed: 'bg-emerald-50 text-emerald-700',
-  requires_review: 'bg-amber-100 text-amber-800',
-}
-
-const statusLabels: Record<ExpenseStatus, string> = {
-  draft: 'Borrador',
-  confirmed: 'Confirmado',
-  requires_review: 'Revisar',
-}
-
-const approvalStyles: Record<ApprovalStatus, string> = {
-  pending: 'bg-sky-50 text-sky-700',
-  approved: 'bg-emerald-50 text-emerald-700',
-  rejected: 'bg-red-50 text-red-700',
-}
-
-const approvalLabels: Record<ApprovalStatus, string> = {
-  pending: 'Pendiente',
-  approved: 'Aprobado',
-  rejected: 'Rechazado',
-}
-
-export function StatusBadge({ status }: { status: ExpenseStatus }) {
-  return (
-    <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold', statusStyles[status])}>
-      {statusLabels[status]}
-    </span>
-  )
-}
-
-export function ApprovalBadge({ status }: { status: ApprovalStatus }) {
+export function PriorityBadge({ priority }: { priority: TaskPriority }) {
   return (
     <span
-      className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold', approvalStyles[status])}
+      className={cn(
+        'rounded-full px-2 py-0.5 text-[11px] font-semibold',
+        priorityStyles[priority],
+      )}
     >
-      {approvalLabels[status]}
+      {TASK_PRIORITY_LABELS[priority]}
     </span>
   )
 }
@@ -156,13 +142,7 @@ export function EmptyState({
   )
 }
 
-export function ErrorState({
-  message,
-  onRetry,
-}: {
-  message: string
-  onRetry?: () => void
-}) {
+export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
       <div className="flex size-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">

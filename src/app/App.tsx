@@ -2,13 +2,10 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './AppLayout'
 import { ProtectedRoute } from '../auth/ProtectedRoute'
 import { LoginPage } from '../auth/LoginPage'
-import { ExpensesPage } from '../expenses/ExpensesPage'
-import { CapturePage } from '../capture/CapturePage'
-import { ReviewPage } from '../extraction/ReviewPage'
-import { ExpenseDetailPage } from '../expenses/ExpenseDetailPage'
-import { SummaryPage } from '../reports/SummaryPage'
-import { ApprovalsPage } from '../approvals/ApprovalsPage'
-import { AccountPage } from '../account/AccountPage'
+import { TasksPage } from '../tasks/TasksPage'
+import { ChatPage } from '../chat/ChatPage'
+import { TeamPage } from '../team/TeamPage'
+import { ProfilePage } from '../profile/ProfilePage'
 
 export default function App() {
   return (
@@ -16,14 +13,12 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route index element={<ExpensesPage />} />
-          <Route path="summary" element={<SummaryPage />} />
-          <Route path="capture" element={<CapturePage />} />
-          <Route path="approvals" element={<ApprovalsPage />} />
-          <Route path="account" element={<AccountPage />} />
-          <Route path="expenses/:id" element={<ExpenseDetailPage />} />
-          <Route path="expenses/:id/review" element={<ReviewPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route index element={<Navigate to="/tasks" replace />} />
+          <Route path="tasks" element={<TasksPage />} />
+          <Route path="chat" element={<ChatPage />} />
+          <Route path="team" element={<TeamPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="*" element={<Navigate to="/tasks" replace />} />
         </Route>
       </Route>
     </Routes>

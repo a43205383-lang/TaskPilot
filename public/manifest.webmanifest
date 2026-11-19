@@ -1,7 +1,7 @@
 {
-  "name": "TaskPilot — Gastos de la empresa",
+  "name": "TaskPilot — Asistente de tareas con IA",
   "short_name": "TaskPilot",
-  "description": "Fotografía un recibo, la IA extrae los datos y quedan ordenados.",
+  "description": "Escribe en lenguaje natural y mantén tus tareas ordenadas y con fecha.",
   "lang": "es-DO",
   "start_url": "/",
   "scope": "/",

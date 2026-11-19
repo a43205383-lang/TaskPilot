@@ -18,7 +18,7 @@ interface AuthContextValue {
   profile: Profile | null
   loading: boolean
   profileLoading: boolean
-  isAccountant: boolean
+  isSupervisor: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (
     email: string,
@@ -30,6 +30,8 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+
+const CACHE_PREFIX = 'tareas:'
 
 function translateAuthError(message: string): string {
   const text = message.toLowerCase()
@@ -79,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = useCallback(async (userId: string) => {
     setProfileLoading(true)
     try {
-      // El trigger handle_new_user puede tardar unos milisegundos tras el registro.
+      // El trigger de perfil puede tardar unos milisegundos tras el registro.
       for (let attempt = 0; attempt < 8; attempt += 1) {
         const found = await fetchProfile(userId)
         if (found) {
@@ -131,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear()
     for (let index = localStorage.length - 1; index >= 0; index -= 1) {
       const key = localStorage.key(index)
-      if (key?.startsWith('recibos:')) localStorage.removeItem(key)
+      if (key?.startsWith(CACHE_PREFIX)) localStorage.removeItem(key)
     }
     setProfile(null)
   }, [])
@@ -146,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       loading,
       profileLoading,
-      isAccountant: profile?.role === 'accountant',
+      isSupervisor: profile?.role === 'supervisor',
       signIn,
       signUp,
       signOut,
