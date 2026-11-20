@@ -51,18 +51,18 @@ export function AppLayout() {
     <div className="min-h-dvh bg-stone-50">
       <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-lg items-center justify-between gap-2 px-3 py-2.5">
-          <div className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-brand-600 text-white">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
               <CheckSquare2 className="size-5" aria-hidden />
             </span>
-            <div className="leading-tight">
-              <p className="text-sm font-bold text-stone-900">TaskPilot</p>
-              <p className="text-[11px] text-stone-500">{timezone.replace('_', ' ')}</p>
+            <div className="min-w-0 leading-tight">
+              <p className="truncate text-sm font-bold text-stone-900">TaskPilot</p>
+              <p className="max-w-36 truncate text-[11px] text-stone-500">{timezone.replace('_', ' ')}</p>
             </div>
           </div>
           <Link
             to="/profile"
-            className="flex items-center gap-2 rounded-xl p-1 text-right hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            className="flex shrink-0 items-center gap-2 rounded-xl p-1 text-right hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             aria-label={`Ver perfil de ${name}`}
           >
             <div className="leading-tight">

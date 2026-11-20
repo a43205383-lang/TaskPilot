@@ -17,12 +17,15 @@ import type {
 interface SpeechResult {
   results: ArrayLike<ArrayLike<{ transcript: string }>>
 }
+interface SpeechRecognitionError {
+  error: string
+}
 interface SpeechRecognitionLike {
   lang: string
   continuous: boolean
   interimResults: boolean
   onresult: ((event: SpeechResult) => void) | null
-  onerror: (() => void) | null
+  onerror: ((event: SpeechRecognitionError) => void) | null
   onend: (() => void) | null
   start(): void
   stop(): void
@@ -162,7 +165,11 @@ export function ChatPage() {
     }
     const Ctor = speechRecognition()
     if (!Ctor) {
-      setVoiceError('Tu navegador no permite dictado por voz. Escribe el mensaje.')
+      setVoiceError('Este navegador no ofrece dictado por voz. Prueba en Chrome o escribe el mensaje.')
+      return
+    }
+    if (!window.isSecureContext) {
+      setVoiceError('El dictado requiere una conexión segura (HTTPS). Abre la app desde Vercel o localhost.')
       return
     }
     setVoiceError(null)
@@ -175,16 +182,34 @@ export function ChatPage() {
         .map((result) => result[0]?.transcript ?? '')
         .join(' ')
         .trim()
-      if (transcript) setInput((current) => (current ? `${current} ${transcript}` : transcript))
+      if (transcript) {
+        setVoiceError(null)
+        setInput((current) => (current ? `${current} ${transcript}` : transcript))
+      }
     }
-    recognition.onerror = () => {
+    recognition.onerror = (event) => {
       setListening(false)
-      setVoiceError('No se pudo escuchar. Inténtalo de nuevo.')
+      const messages: Record<string, string> = {
+        'not-allowed': 'Permite el acceso al micrófono en los permisos del navegador y vuelve a intentarlo.',
+        'service-not-allowed': 'El servicio de dictado está bloqueado por el navegador.',
+        'audio-capture': 'No se encontró un micrófono disponible.',
+        'no-speech': 'No detecté voz. Pulsa el micrófono e inténtalo de nuevo.',
+        network: 'El servicio de reconocimiento de voz no está disponible. Revisa tu conexión.',
+      }
+      if (event.error !== 'aborted') {
+        setVoiceError(messages[event.error] ?? 'No se pudo iniciar el dictado. Inténtalo de nuevo.')
+      }
     }
     recognition.onend = () => setListening(false)
     recognitionRef.current = recognition
-    recognition.start()
-    setListening(true)
+    try {
+      recognition.start()
+      setListening(true)
+    } catch {
+      recognitionRef.current = null
+      setListening(false)
+      setVoiceError('No se pudo iniciar el micrófono. Revisa sus permisos e inténtalo de nuevo.')
+    }
   }
 
   return (
@@ -283,7 +308,7 @@ export function ChatPage() {
       </div>
 
       {messages.length === 0 ? (
-        <div className="mb-2 flex gap-2 overflow-x-auto pb-1">
+        <div className="mb-2 flex flex-wrap gap-2 pb-1">
           {SUGGESTIONS.map((suggestion) => (
             <button
               key={suggestion}
@@ -301,12 +326,14 @@ export function ChatPage() {
         <button
           type="button"
           onClick={toggleVoice}
-          className={`flex size-10 shrink-0 items-center justify-center rounded-xl transition ${
+          className={`flex size-11 shrink-0 items-center justify-center rounded-xl transition ${
             listening ? 'bg-red-50 text-red-600' : 'bg-stone-100 text-stone-600'
           }`}
           aria-label={listening ? 'Detener dictado' : 'Dictar mensaje'}
+          aria-pressed={listening}
+          title={listening ? 'Detener dictado' : 'Dictar mensaje'}
         >
-          <Mic className="size-5" aria-hidden />
+          <Mic className={`size-5 ${listening ? 'animate-pulse' : ''}`} aria-hidden />
         </button>
         <textarea
           className="max-h-28 min-h-10 flex-1 resize-none bg-transparent px-1 py-2 text-sm outline-none placeholder:text-stone-400"
@@ -321,7 +348,7 @@ export function ChatPage() {
           placeholder="Recuérdame cobrarle a Juan el viernes…"
           rows={1}
         />
-        <Button type="submit" size="sm" loading={sending} disabled={!input.trim()} className="size-10 p-0">
+        <Button type="submit" size="sm" loading={sending} disabled={!input.trim()} className="size-11 p-0">
           <ArrowUp className="size-5" aria-hidden />
         </Button>
       </form>

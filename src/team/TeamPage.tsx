@@ -127,7 +127,7 @@ export function TeamPage() {
               <div className="min-w-0">
                 <Link
                   to={`/tasks?task=${task.id}`}
-                  className="text-sm font-semibold text-stone-900 hover:text-brand-700"
+                  className="break-words text-sm font-semibold text-stone-900 hover:text-brand-700"
                 >
                   {task.title}
                 </Link>

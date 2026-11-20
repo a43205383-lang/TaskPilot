@@ -23,13 +23,13 @@ export function ChatMessageBubble({ message }: { message: ChatMessage }) {
 
       <div
         className={cn(
-          'max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm',
+          'min-w-0 max-w-[85%] break-words rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm',
           isUser
             ? 'rounded-br-sm bg-brand-600 text-white'
             : 'rounded-bl-sm border border-stone-200 bg-white text-stone-800',
         )}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        <p className="whitespace-pre-wrap break-words">{message.content}</p>
 
         {message.actions.length > 0 ? (
           <div className="mt-2 space-y-1 border-t border-stone-200 pt-2">

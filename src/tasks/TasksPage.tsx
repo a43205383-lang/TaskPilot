@@ -172,14 +172,14 @@ export function TasksPage() {
         }
       />
 
-      <div className="mb-3 grid grid-cols-4 gap-1 rounded-xl bg-stone-100 p-1">
+      <div className="mb-3 grid grid-cols-2 gap-2 rounded-xl bg-stone-100 p-1">
         {TASK_VIEWS.map((entry) => (
           <button
             key={entry.value}
             type="button"
             onClick={() => setView(entry.value)}
             className={cn(
-              'rounded-lg px-1 py-2 text-[11px] font-semibold transition',
+              'min-h-11 rounded-lg px-2 py-2 text-xs font-semibold transition',
               view === entry.value ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500',
             )}
           >

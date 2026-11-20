@@ -48,7 +48,7 @@ export function TaskCard({
         type="button"
         onClick={() => onStatusChange(NEXT_STATUS[task.status])}
         className={cn(
-          'mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full transition active:scale-95',
+          'mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-full transition active:scale-95',
           task.status === 'done'
             ? 'bg-emerald-50 text-emerald-600'
             : 'bg-stone-100 text-stone-500 hover:bg-brand-50 hover:text-brand-700',
@@ -63,7 +63,7 @@ export function TaskCard({
         <button type="button" onClick={onEdit} className="block w-full text-left">
           <h3
             className={cn(
-              'text-sm font-semibold leading-snug',
+              'break-words text-sm font-semibold leading-snug',
               task.status === 'done' ? 'text-stone-400 line-through' : 'text-stone-900',
             )}
           >
@@ -113,7 +113,7 @@ export function TaskCard({
         <button
           type="button"
           onClick={onEdit}
-          className="flex size-8 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+          className="flex size-11 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 hover:text-stone-700"
           aria-label="Editar tarea"
         >
           <Pencil className="size-4" aria-hidden />
@@ -121,7 +121,7 @@ export function TaskCard({
         <button
           type="button"
           onClick={onDelete}
-          className="flex size-8 items-center justify-center rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-600"
+          className="flex size-11 items-center justify-center rounded-lg text-stone-400 hover:bg-red-50 hover:text-red-600"
           aria-label="Eliminar tarea"
         >
           <Trash2 className="size-4" aria-hidden />

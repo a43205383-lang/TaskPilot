@@ -23,7 +23,7 @@ const buttonVariants: Record<ButtonVariant, string> = {
 }
 
 const buttonSizes: Record<ButtonSize, string> = {
-  sm: 'min-h-9 px-3 text-sm',
+  sm: 'min-h-11 px-3 text-sm',
   md: 'min-h-11 px-4 text-sm',
   lg: 'min-h-12 px-5 text-base',
 }
@@ -231,7 +231,7 @@ export function Modal({
           <button
             type="button"
             onClick={onClose}
-            className="flex size-9 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100"
+            className="flex size-11 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100"
             aria-label="Cerrar"
           >
             <X className="size-5" aria-hidden />
