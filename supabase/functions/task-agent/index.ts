@@ -143,14 +143,23 @@ function safeTimezone(value: unknown): string {
 }
 
 async function callGemini(apiKey: string, model: string, body: Record<string, unknown>) {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-      body: JSON.stringify(body),
-    },
-  )
+  let response: Response
+  try {
+    response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(30_000),
+      },
+    )
+  } catch (error) {
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      throw new Error('Gemini tardó más de 30 segundos en responder. Inténtalo de nuevo.')
+    }
+    throw error
+  }
   const result = await response.json().catch(() => ({}))
   if (!response.ok) {
     const message = isRecord(result) && isRecord(result.error) && typeof result.error.message === 'string'
@@ -178,6 +187,7 @@ async function callSupabaseRest(
       Prefer: 'return=representation',
     },
     body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(8_000),
   })
   const text = await response.text()
   let result: unknown = null
@@ -223,6 +233,7 @@ edgeRuntime.Deno.serve(async (request: Request) => {
 
     const authResponse = await fetch(`${supabaseUrl.replace(/\/$/, '')}/auth/v1/user`, {
       headers: { apikey: anonKey, Authorization: `Bearer ${jwt}` },
+      signal: AbortSignal.timeout(8_000),
     })
     const authUser: unknown = await authResponse.json().catch(() => null)
     if (!authResponse.ok || !isRecord(authUser) || typeof authUser.id !== 'string') {
