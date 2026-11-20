@@ -33,6 +33,16 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 const CACHE_PREFIX = 'tareas:'
 
+function readCachedProfile(userId: string): Profile | null {
+  try {
+    const cached = JSON.parse(localStorage.getItem(`${CACHE_PREFIX}profile:${userId}`) ?? 'null') as Profile | null
+    if (!cached || cached.id !== userId || (cached.role !== 'employee' && cached.role !== 'supervisor')) return null
+    return cached
+  } catch {
+    return null
+  }
+}
+
 function translateAuthError(message: string): string {
   const text = message.toLowerCase()
   if (text.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.'
@@ -79,13 +89,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loadProfile = useCallback(async (userId: string) => {
+    const cachedProfile = readCachedProfile(userId)
+    if (cachedProfile) setProfile(cachedProfile)
     setProfileLoading(true)
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setProfile(cachedProfile)
+      setProfileLoading(false)
+      return
+    }
     try {
       // El trigger de perfil puede tardar unos milisegundos tras el registro.
       for (let attempt = 0; attempt < 8; attempt += 1) {
         const found = await fetchProfile(userId)
         if (found) {
           setProfile(found)
+          try {
+            localStorage.setItem(`${CACHE_PREFIX}profile:${userId}`, JSON.stringify(found))
+          } catch {
+            // El perfil sigue disponible en memoria aunque el almacenamiento esté lleno.
+          }
           setProfileLoading(false)
           return
         }
@@ -93,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setProfile(null)
     } catch {
-      setProfile(null)
+      setProfile(cachedProfile)
     } finally {
       setProfileLoading(false)
     }

@@ -2,7 +2,7 @@
  * No cachea respuestas de Supabase (datos privados por usuario).
  * Sube CACHE_VERSION al desplegar cambios importantes.
  */
-const CACHE_VERSION = 'taskpilot-v1'
+const CACHE_VERSION = 'taskpilot-v2'
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -16,6 +16,14 @@ self.addEventListener('install', (event) => {
     caches
       .open(CACHE_VERSION)
       .then((cache) => cache.addAll(APP_SHELL))
+      .then(() => fetch('/index.html'))
+      .then((response) => response.text())
+      .then((html) => {
+        const assets = Array.from(html.matchAll(/(?:src|href)="([^\"]+\.(?:js|css))"/g))
+          .map((match) => match[1])
+          .filter((path) => path.startsWith('/'))
+        return caches.open(CACHE_VERSION).then((cache) => cache.addAll(assets))
+      })
       .then(() => self.skipWaiting()),
   )
 })

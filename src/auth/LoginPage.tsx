@@ -174,10 +174,6 @@ export function LoginPage() {
             {mode === 'signin' ? 'Entrar' : 'Crear cuenta'}
           </Button>
         </form>
-
-        <p className="mt-4 text-center text-xs text-stone-500">
-          Almazenado de forma segura con Supabase · PWA instalable
-        </p>
       </div>
     </div>
   )

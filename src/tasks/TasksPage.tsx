@@ -62,9 +62,15 @@ export function TasksPage() {
     queryKey: ['tasks'],
     queryFn: async () => {
       if (!online) return readCachedTasks(userId)
-      const tasks = await fetchTasks()
-      localStorage.setItem(cacheKey(userId), JSON.stringify(tasks))
-      return tasks
+      try {
+        const tasks = await fetchTasks()
+        localStorage.setItem(cacheKey(userId), JSON.stringify(tasks))
+        return tasks
+      } catch (error) {
+        const cachedTasks = readCachedTasks(userId)
+        if (cachedTasks.length > 0) return cachedTasks
+        throw error
+      }
     },
   })
 
