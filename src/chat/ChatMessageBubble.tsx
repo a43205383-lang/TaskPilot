@@ -34,13 +34,19 @@ export function ChatMessageBubble({ message }: { message: ChatMessage }) {
         {message.actions.length > 0 ? (
           <div className="mt-2 space-y-1 border-t border-stone-200 pt-2">
             {message.actions.map((action, index) => (
-              <Link
-                key={`${action.task_id}-${index}`}
-                to={`/tasks?task=${action.task_id}`}
-                className="block rounded-lg bg-stone-50 px-2 py-1.5 text-xs font-medium text-brand-700 hover:bg-stone-100"
-              >
-                {ACTION_LABELS[action.type]} · {action.title} →
-              </Link>
+              action.type === 'deleted' ? (
+                <p key={`${action.task_id}-${index}`} className="px-2 py-1.5 text-xs font-medium text-stone-600">
+                  {ACTION_LABELS[action.type]} · {action.title}
+                </p>
+              ) : (
+                <Link
+                  key={`${action.task_id}-${index}`}
+                  to={`/tasks?task=${action.task_id}`}
+                  className="block rounded-lg bg-stone-50 px-2 py-1.5 text-xs font-medium text-brand-700 hover:bg-stone-100"
+                >
+                  {ACTION_LABELS[action.type]} · {action.title} →
+                </Link>
+              )
             ))}
           </div>
         ) : null}

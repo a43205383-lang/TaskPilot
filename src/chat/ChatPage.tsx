@@ -237,7 +237,13 @@ export function ChatPage() {
       {confirmation ? (
         <Banner tone="warning" title={confirmation.message}>
           <div className="mt-2 flex gap-2">
-            <Button size="sm" onClick={() => void send(lastMessage, { confirm: true })}>
+            <Button
+              size="sm"
+              onClick={() => void send(lastMessage, {
+                confirm: true,
+                confirmed_task_ids: confirmation.task_ids,
+              })}
+            >
               Confirmar
             </Button>
             <Button size="sm" variant="secondary" onClick={() => setConfirmation(null)}>
