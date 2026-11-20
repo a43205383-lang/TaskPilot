@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, Link } from 'react-router-dom'
 import { CheckSquare2, MessageCircle, UserRound, Users } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
 import { cn, initials, ROLE_LABELS } from '../shared/utils'
@@ -60,23 +60,21 @@ export function AppLayout() {
               <p className="text-[11px] text-stone-500">{timezone.replace('_', ' ')}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="text-right leading-tight">
+          <Link
+            to="/profile"
+            className="flex items-center gap-2 rounded-xl p-1 text-right hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            aria-label={`Ver perfil de ${name}`}
+          >
+            <div className="leading-tight">
               <p className="max-w-28 truncate text-xs font-semibold text-stone-800">{name}</p>
               <p className="text-[10px] text-stone-500">
                 {profile ? ROLE_LABELS[profile.role] : '…'}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              className="flex size-9 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800"
-              aria-label="Cerrar sesión"
-              title={name}
-            >
+            <span className="flex size-9 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800">
               {initials(profile?.full_name, session?.user.email)}
-            </button>
-          </div>
+            </span>
+          </Link>
         </div>
       </header>
 

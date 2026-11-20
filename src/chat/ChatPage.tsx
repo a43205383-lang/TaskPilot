@@ -170,7 +170,7 @@ export function ChatPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100dvh-11rem)] flex-col">
+    <div className="flex h-[calc(100dvh-13.5rem)] min-h-[24rem] flex-col overflow-hidden">
       <PageHeader title="Asistente" subtitle="Escribe lo que tienes pendiente" />
 
       {error ? (
@@ -229,7 +229,7 @@ export function ChatPage() {
         </Banner>
       ) : null}
 
-      <div className="flex-1 space-y-3 py-3">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain py-3">
         {history.isLoading ? <Spinner label="Cargando conversación…" /> : null}
         {history.isError ? (
           <Banner tone="warning" title="No se pudo cargar el historial">
@@ -273,7 +273,7 @@ export function ChatPage() {
         </div>
       ) : null}
 
-      <form onSubmit={onSubmit} className="sticky bottom-24 flex items-end gap-2 rounded-2xl border border-stone-200 bg-white p-2 shadow-sm">
+      <form onSubmit={onSubmit} className="shrink-0 flex items-end gap-2 rounded-2xl border border-stone-200 bg-white p-2 shadow-sm">
         <button
           type="button"
           onClick={toggleVoice}
