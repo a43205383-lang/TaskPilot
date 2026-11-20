@@ -112,8 +112,8 @@ export function ChatPage() {
       }
       setMessages((current) => [...current, reply])
 
-      await saveChatMessage('user', trimmed)
-      await saveChatMessage('assistant', response.reply, response.actions ?? [])
+      await saveChatMessage(userId, 'user', trimmed)
+      await saveChatMessage(userId, 'assistant', response.reply, response.actions ?? [])
       if (response.actions?.length) {
         await queryClient.invalidateQueries({ queryKey: ['tasks'] })
       }

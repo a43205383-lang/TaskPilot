@@ -14,11 +14,13 @@ export async function fetchChatHistory(): Promise<ChatMessage[]> {
 }
 
 export async function saveChatMessage(
+  userId: string,
   role: ChatMessage['role'],
   content: string,
   actions: AgentResponse['actions'] = [],
 ): Promise<void> {
   const { error } = await supabase.from('chat_messages').insert({
+    user_id: userId,
     role,
     content,
     actions,

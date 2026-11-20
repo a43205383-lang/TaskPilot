@@ -33,9 +33,12 @@ Para desplegar desde el Dashboard:
 
 1. En **Edge Functions**, crea `task-agent` y pega el contenido de
    `functions/task-agent/index.ts` en el editor.
-2. Deja activada la verificación JWT para la función.
+2. Desactiva la verificación JWT del gateway para esta función, para que el preflight
+   `OPTIONS` llegue al handler. El handler valida cada `POST` con
+   `supabase.auth.getUser(jwt)` antes de ejecutar herramientas y usa ese JWT para las
+   consultas RLS; no procesa solicitudes sin una sesión válida.
 3. En **Edge Function Secrets**, añade `GEMINI_API_KEY` con tu clave de Google AI Studio.
-   Opcionalmente añade `GEMINI_MODEL=gemini-2.5-flash`.
+   Opcionalmente añade `GEMINI_MODEL=gemini-3.8-flash`.
 4. Guarda y despliega la función. No pegues la llave en el código ni en Vercel.
 
 El runtime de Supabase inyecta `SUPABASE_URL` y la clave publishable/anon para inicializar

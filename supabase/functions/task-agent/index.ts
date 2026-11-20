@@ -1,5 +1,7 @@
 // @ts-ignore Supabase Edge Runtime resolves Deno npm: specifiers; plain TypeScript does not.
 import { createClient } from 'npm:@supabase/supabase-js@2'
+// @ts-ignore Supabase Edge Runtime resolves Deno npm: specifiers; plain TypeScript does not.
+import { corsHeaders as supabaseCorsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 
 const edgeRuntime = globalThis as typeof globalThis & {
   Deno: {
@@ -9,8 +11,7 @@ const edgeRuntime = globalThis as typeof globalThis & {
 }
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  ...supabaseCorsHeaders,
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
@@ -177,7 +178,7 @@ edgeRuntime.Deno.serve(async (request: Request) => {
     const publishableKeys = JSON.parse(edgeRuntime.Deno.env.get('SUPABASE_PUBLISHABLE_KEYS') ?? '{}') as Record<string, string>
     const anonKey = edgeRuntime.Deno.env.get('SUPABASE_ANON_KEY') ?? publishableKeys.default
     const geminiKey = edgeRuntime.Deno.env.get('GEMINI_API_KEY')
-    const model = edgeRuntime.Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash'
+    const model = edgeRuntime.Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.8-flash'
     if (!supabaseUrl || !anonKey || !geminiKey) {
       return jsonResponse({ error: 'Falta configurar la función task-agent en Supabase.' }, 500)
     }
