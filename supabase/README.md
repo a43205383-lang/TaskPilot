@@ -23,11 +23,23 @@ RLS limitan tareas y conversaciones al usuario; el supervisor puede consultar to
 tareas y asignarlas. La llave de IA debe vivir como Secret de la Edge Function
 `task-agent`, nunca en variables `VITE_*`.
 
-## Edge Function pendiente
+## Edge Function `task-agent`
 
-El frontend invoca `task-agent` con JWT (`verify_jwt = true`). El contrato de solicitud,
-respuesta, herramientas y validaciones está documentado en el README principal. La
-implementación de la función y su llave de proveedor de IA siguen pendientes.
+El frontend invoca `task-agent` con JWT (`verify_jwt = true`). La implementación está en
+`functions/task-agent/index.ts` y usa las herramientas de tareas bajo el JWT del usuario,
+así que las consultas respetan RLS. Gemini se llama solo desde la función.
+
+Para desplegar desde el Dashboard:
+
+1. En **Edge Functions**, crea `task-agent` y pega el contenido de
+   `functions/task-agent/index.ts` en el editor.
+2. Deja activada la verificación JWT para la función.
+3. En **Edge Function Secrets**, añade `GEMINI_API_KEY` con tu clave de Google AI Studio.
+   Opcionalmente añade `GEMINI_MODEL=gemini-2.5-flash`.
+4. Guarda y despliega la función. No pegues la llave en el código ni en Vercel.
+
+El runtime de Supabase inyecta `SUPABASE_URL` y la clave publishable/anon para inicializar
+el cliente delegado al JWT de la persona. La función no usa `service_role`.
 
 > Los archivos conservan los identificadores de migración del borrador anterior, pero
 > ahora definen el esquema de TaskPilot. Si ya aplicaste una versión anterior, no vuelvas

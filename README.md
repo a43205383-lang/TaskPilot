@@ -4,8 +4,9 @@ PWA móvil donde la persona escribe en lenguaje natural lo que tiene pendiente y
 agente con *tool calling* crea y gestiona tareas en Supabase.
 
 > **Estado actual:** las pantallas del frontend y el esquema/migraciones de Supabase
-> para tareas y chat están en el repo. La Edge Function `task-agent`, la configuración
-> del proyecto Supabase y las pruebas de integración todavía están pendientes.
+> para tareas y chat están en el repo. El código de `task-agent` ya está preparado en
+> `supabase/functions/task-agent/`; falta desplegarlo y configurar `GEMINI_API_KEY` como
+> Secret en Supabase. Las pruebas de integración siguen pendientes.
 
 ## Stack
 
@@ -126,7 +127,7 @@ el service worker.
 
 ## Pendientes
 
-- Edge Function `task-agent` con tool calling y validación con Zod.
+- Desplegar Edge Function `task-agent` y configurar `GEMINI_API_KEY` como Secret.
 - Aplicar las migraciones en un proyecto Supabase de desarrollo y verificar auth/RLS.
 - Usuarios de prueba, deploy a URL pública, video de 3–5 min y revisiones.
 - Pruebas automáticas de fechas relativas y herramientas del agente.
