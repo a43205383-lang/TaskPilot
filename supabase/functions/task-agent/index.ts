@@ -245,6 +245,60 @@ edgeRuntime.Deno.serve(async (request: Request) => {
     }
     const userId = authUser.id
 
+    // Recover a pending disambiguation from persisted chat history as a
+    // fallback for clients that send the user's typed choice without metadata.
+    if (!body.selected_task_action && !body.selected_task_id) {
+      const latestMessages = await callSupabaseRest(
+        supabaseUrl, anonKey, jwt,
+        'chat_messages?select=role,content,created_at&order=created_at.desc&limit=2',
+      )
+      const latestMessage = Array.isArray(latestMessages) ? latestMessages[0] : null
+      const previousMessage = Array.isArray(latestMessages) ? latestMessages[1] : null
+      const latestContent = isRecord(latestMessage) && latestMessage.role === 'assistant' && typeof latestMessage.content === 'string'
+        ? latestMessage.content.toLocaleLowerCase()
+        : ''
+      const previousContent = isRecord(previousMessage) && previousMessage.role === 'user' && typeof previousMessage.content === 'string'
+        ? previousMessage.content.toLocaleLowerCase()
+        : ''
+      const clarificationAgeMs = isRecord(latestMessage) && typeof latestMessage.created_at === 'string'
+        ? Date.now() - Date.parse(latestMessage.created_at)
+        : Number.POSITIVE_INFINITY
+      const hasPendingCompletionQuestion = latestContent.includes('encontré varias tareas')
+        || latestContent.includes('encontré dos tareas')
+        || latestContent.includes('¿cuál de las dos deseas marcar como hecha?')
+      const previousRequestWasCompletion = /\b(marca|marcar|completa|completar|hecha|hecho)\b/.test(previousContent)
+      if (hasPendingCompletionQuestion && previousRequestWasCompletion && clarificationAgeMs >= 0 && clarificationAgeMs < 30 * 60_000) {
+        const pendingTasks = await callSupabaseRest(
+          supabaseUrl, anonKey, jwt,
+          'tasks?select=id,title,status&status=neq.done&order=created_at.desc&limit=100',
+        )
+        const normalizedChoice = message.trim().toLocaleLowerCase().normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ')
+        const exactMatches = Array.isArray(pendingTasks)
+          ? pendingTasks.filter((task): task is Record<string, unknown> => isRecord(task)
+            && typeof task.title === 'string'
+            && task.title.toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ') === normalizedChoice)
+          : []
+        if (exactMatches.length === 1 && typeof exactMatches[0].id === 'string') {
+          const selected = exactMatches[0]
+          const completedRows = await callSupabaseRest(
+            supabaseUrl, anonKey, jwt,
+            `tasks?id=eq.${encodeURIComponent(selected.id as string)}&select=id,title,status`,
+            'PATCH',
+            { status: 'done', completed_at: new Date().toISOString() },
+          )
+          const completed = Array.isArray(completedRows) ? completedRows[0] : null
+          if (!isRecord(completed) || typeof completed.id !== 'string' || typeof completed.title !== 'string') {
+            return jsonResponse({ error: 'No se pudo guardar el cambio.' }, 500)
+          }
+          return jsonResponse({
+            reply: `Listo, marqué como hecha «${completed.title}».`,
+            actions: [{ type: 'completed', task_id: completed.id, title: completed.title }],
+          } as unknown as Json)
+        }
+      }
+    }
+
     const systemInstruction = `Eres TaskPilot, asistente de tareas en español. Zona horaria: ${timezone}. Hoy es ${today} en esa zona.
 Convierte fechas relativas usando esa fecha y zona horaria. Si el usuario dice una fecha sin hora, usa 17:00 hora local. Si el año no se especifica, usa el próximo día coincidente, no una fecha pasada.
 Solo llama herramientas para acciones que el usuario pidió claramente. Para completar o modificar tareas, primero llama list_tasks y elige por coincidencia del nombre o descripción. Si más de una tarea coincide razonablemente, NO llames update_task ni complete_task; pregunta cuál es. Nunca elijas una arbitrariamente. No afirmes que guardaste algo sin ejecutar la herramienta. Prioridad default medium; “urgente” significa high. Status nuevos pending. No inventes información ausente.
