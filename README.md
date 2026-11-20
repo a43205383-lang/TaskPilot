@@ -3,10 +3,9 @@
 PWA móvil donde la persona escribe en lenguaje natural lo que tiene pendiente y un
 agente con *tool calling* crea y gestiona tareas en Supabase.
 
-> **Estado actual:** el **frontend completo** está implementado y compila
-> (`pnpm typecheck` + `pnpm build`). El backend (migraciones de `tasks` y la Edge
-> Function del agente) aún no está en este repo: al final de este documento está
-> el contrato exacto que el frontend espera.
+> **Estado actual:** las pantallas del frontend y el esquema/migraciones de Supabase
+> para tareas y chat están en el repo. La Edge Function `task-agent`, la configuración
+> del proyecto Supabase y las pruebas de integración todavía están pendientes.
 
 ## Stack
 
@@ -127,9 +126,8 @@ el service worker.
 
 ## Pendientes
 
-- Migraciones SQL de `tasks` / `chat_messages` y rol supervisor (el SQL actual en
-  `supabase/` corresponde a otro proyecto de la misma prueba y debe reemplazarse).
 - Edge Function `task-agent` con tool calling y validación con Zod.
+- Aplicar las migraciones en un proyecto Supabase de desarrollo y verificar auth/RLS.
 - Usuarios de prueba, deploy a URL pública, video de 3–5 min y revisiones.
 - Pruebas automáticas de fechas relativas y herramientas del agente.
 - Notificaciones push (deseable).
