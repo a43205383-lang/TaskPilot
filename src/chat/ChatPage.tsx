@@ -76,7 +76,25 @@ export function ChatPage() {
 
   async function send(text: string, extra: Partial<ChatRequest> = {}) {
     const trimmed = text.trim()
+    let messageToSend = trimmed
+    let requestExtra = extra
     if (!trimmed || sending) return
+
+    if (clarification && !extra.selected_task_id) {
+      const normalize = (value: string) => value.trim().toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      const selectedOption = clarification.options.find((option) => normalize(option.title) === normalize(trimmed))
+      if (!selectedOption) {
+        setError('Elige una de las tareas indicadas para continuar.')
+        return
+      }
+      messageToSend = lastMessage
+      requestExtra = {
+        selected_task_id: selectedOption.id,
+        selected_task_action: clarification.action,
+      }
+    } else if (clarification?.action && extra.selected_task_id) {
+      requestExtra = { ...extra, selected_task_action: clarification.action }
+    }
 
     setInput('')
     setError(null)
@@ -98,9 +116,9 @@ export function ChatPage() {
 
     try {
       const response = await sendToAgent({
-        message: trimmed,
+        message: messageToSend,
         context: { timezone, today: todayInTimezone(timezone) },
-        ...extra,
+        ...requestExtra,
       })
       const reply: ChatMessage = {
         id: crypto.randomUUID(),
@@ -205,7 +223,7 @@ export function ChatPage() {
                 key={option.id}
                 type="button"
                 onClick={() =>
-                  void send(lastMessage, { selected_task_id: option.id })
+                  void send(lastMessage, { selected_task_id: option.id, selected_task_action: clarification.action })
                 }
                 className="chip chip-off"
               >

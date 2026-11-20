@@ -6,6 +6,7 @@ export interface AgentAction {
 
 export interface AgentClarification {
   question: string
+  action: 'complete_task'
   options: Array<{ id: string; title: string }>
 }
 
@@ -26,6 +27,7 @@ export interface ChatRequest {
   context: { timezone: string; today: string }
   confirm?: boolean
   selected_task_id?: string | null
+  selected_task_action?: 'complete_task'
 }
 
 export interface ChatMessage {
