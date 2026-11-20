@@ -5,7 +5,7 @@ import { ShieldCheck, Users } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
 import { fetchProfiles } from '../auth/api'
 import { Banner, EmptyState, ErrorState, PageHeader, Spinner, TaskStatusBadge } from '../shared/ui'
-import { DEFAULT_TIMEZONE, formatTaskDate, initials, ROLE_LABELS } from '../shared/utils'
+import { DEFAULT_TIMEZONE, errorMessage, formatTaskDate, initials, ROLE_LABELS } from '../shared/utils'
 import type { Task } from '../tasks/types'
 import { assignTask, fetchAllTasks } from './api'
 
@@ -14,6 +14,7 @@ export function TeamPage() {
   const queryClient = useQueryClient()
   const timezone = localStorage.getItem('tareas:timezone') ?? DEFAULT_TIMEZONE
   const [assigneeFilter, setAssigneeFilter] = useState('all')
+  const [assignError, setAssignError] = useState<string | null>(null)
 
   const tasksQuery = useQuery({ queryKey: ['team-tasks'], queryFn: fetchAllTasks, enabled: isSupervisor })
   const profilesQuery = useQuery({ queryKey: ['profiles'], queryFn: fetchProfiles, enabled: isSupervisor })
@@ -41,9 +42,14 @@ export function TeamPage() {
   }, [tasks])
 
   async function changeAssignee(task: Task, value: string) {
-    await assignTask(task.id, value || null)
-    await queryClient.invalidateQueries({ queryKey: ['team-tasks'] })
-    await queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    setAssignError(null)
+    try {
+      await assignTask(task.id, value || null)
+      await queryClient.invalidateQueries({ queryKey: ['team-tasks'] })
+      await queryClient.invalidateQueries({ queryKey: ['tasks'] })
+    } catch (error) {
+      setAssignError(errorMessage(error))
+    }
   }
 
   if (!isSupervisor) {
@@ -65,7 +71,16 @@ export function TeamPage() {
     <div>
       <PageHeader title="Equipo" subtitle="Todas las tareas, asignables por persona" />
 
-      <div className="mb-3 grid grid-cols-2 gap-2">
+      {profilesQuery.isLoading ? <Spinner label="Cargando personas…" /> : null}
+      {profilesQuery.isError ? (
+        <ErrorState
+          message="No se pudo cargar la lista de personas del equipo."
+          onRetry={() => void queryClient.invalidateQueries({ queryKey: ['profiles'] })}
+        />
+      ) : null}
+      {assignError ? <Banner tone="error" title="No se pudo asignar la tarea">{assignError}</Banner> : null}
+
+      {profilesQuery.isSuccess ? <div className="mb-3 grid grid-cols-2 gap-2">
         {(profilesQuery.data ?? []).map((profile) => (
           <button
             key={profile.id}
@@ -88,9 +103,9 @@ export function TeamPage() {
             </span>
           </button>
         ))}
-      </div>
+      </div> : null}
 
-      <select
+      {profilesQuery.isSuccess ? <select
         className="field mb-3"
         value={assigneeFilter}
         onChange={(event) => setAssigneeFilter(event.target.value)}
@@ -102,7 +117,7 @@ export function TeamPage() {
             {profile.full_name || 'Sin nombre'}
           </option>
         ))}
-      </select>
+      </select> : null}
 
       {tasksQuery.isLoading ? <Spinner label="Cargando tareas del equipo…" /> : null}
       {tasksQuery.isError ? (

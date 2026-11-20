@@ -1,4 +1,5 @@
-import { Download, LogOut, UserRound } from 'lucide-react'
+import { BellRing, Download, LogOut, UserRound } from 'lucide-react'
+import { useState } from 'react'
 import { useAuth } from '../auth/AuthProvider'
 import { Banner, Button, PageHeader } from '../shared/ui'
 import { DEFAULT_TIMEZONE, initials, ROLE_LABELS } from '../shared/utils'
@@ -13,10 +14,33 @@ const TIMEZONES = [
 export function ProfilePage() {
   const { profile, session, signOut } = useAuth()
   const timezone = localStorage.getItem('tareas:timezone') ?? DEFAULT_TIMEZONE
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>(
+    () => typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
+  )
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(null)
 
   function changeTimezone(value: string) {
     localStorage.setItem('tareas:timezone', value)
     window.dispatchEvent(new Event('storage'))
+  }
+
+  async function enableNotifications() {
+    if (typeof Notification === 'undefined') {
+      setNotificationPermission('unsupported')
+      return
+    }
+    try {
+      const permission = await Notification.requestPermission()
+      setNotificationPermission(permission)
+      setNotificationMessage(permission === 'granted'
+        ? 'Recordatorios activados en este dispositivo.'
+        : 'No se concedió permiso. Puedes cambiarlo en los ajustes del navegador.')
+      if (permission === 'granted') {
+        window.dispatchEvent(new Event('taskpilot:notifications-enabled'))
+      }
+    } catch {
+      setNotificationMessage('No se pudo activar el permiso de notificaciones en este navegador.')
+    }
   }
 
   return (
@@ -54,6 +78,34 @@ export function ProfilePage() {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="card p-4">
+        <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-stone-900">
+          <BellRing className="size-4" aria-hidden />
+          Recordatorios de tareas
+        </h2>
+        <p className="mb-3 text-xs leading-relaxed text-stone-600">
+          Recibe un aviso una hora antes de la fecha límite. La app debe permanecer abierta para revisar las tareas.
+        </p>
+        {notificationMessage ? (
+          <p className="mb-3 text-xs text-stone-600" role="status">{notificationMessage}</p>
+        ) : null}
+        {notificationPermission === 'denied' ? (
+          <p className="mb-3 text-xs text-amber-800">Las notificaciones están bloqueadas; habilítalas desde los permisos del navegador.</p>
+        ) : null}
+        <Button
+          variant="secondary"
+          block
+          disabled={notificationPermission === 'granted' || notificationPermission === 'unsupported'}
+          onClick={() => void enableNotifications()}
+        >
+          {notificationPermission === 'granted'
+            ? 'Notificaciones activadas'
+            : notificationPermission === 'unsupported'
+              ? 'No disponible en este navegador'
+              : 'Activar notificaciones'}
+        </Button>
       </div>
 
       <div className="card p-4">

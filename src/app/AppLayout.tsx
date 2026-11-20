@@ -1,9 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink, Outlet, Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { CheckSquare2, MessageCircle, UserRound, Users } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
 import { cn, initials, ROLE_LABELS } from '../shared/utils'
 import { useOnline } from '../shared/useOnline'
+import { fetchTasksWithCache } from '../tasks/cache'
+import { useTaskReminders } from '../tasks/useTaskReminders'
 
 function NavItem({
   to,
@@ -46,6 +49,14 @@ export function AppLayout() {
   }, [])
 
   const name = profile?.full_name || session?.user.email?.split('@')[0] || 'Usuario'
+  const tasksQuery = useQuery({
+    queryKey: ['tasks', session?.user.id],
+    queryFn: () => fetchTasksWithCache(session?.user.id ?? '', online),
+    enabled: Boolean(session?.user.id),
+    staleTime: 30_000,
+    refetchInterval: online ? 60_000 : false,
+  })
+  useTaskReminders(session?.user.id, tasksQuery.data ?? [], timezone)
 
   return (
     <div className="min-h-dvh bg-stone-50">

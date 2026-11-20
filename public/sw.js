@@ -2,7 +2,7 @@
  * No cachea respuestas de Supabase (datos privados por usuario).
  * Sube CACHE_VERSION al desplegar cambios importantes.
  */
-const CACHE_VERSION = 'taskpilot-v2'
+const CACHE_VERSION = 'taskpilot-v3'
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -70,6 +70,21 @@ self.addEventListener('fetch', (event) => {
           return response
         })
         .catch(() => Response.error())
+    }),
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const target = new URL(event.notification.data?.url ?? '/tasks', self.location.origin)
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      const existing = clients.find((client) => 'focus' in client)
+      if (existing) {
+        existing.navigate(target.href)
+        return existing.focus()
+      }
+      return self.clients.openWindow(target.href)
     }),
   )
 })

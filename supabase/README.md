@@ -25,20 +25,22 @@ tareas y asignarlas. La llave de IA debe vivir como Secret de la Edge Function
 
 ## Edge Function `task-agent`
 
-El frontend invoca `task-agent` con JWT (`verify_jwt = true`). La implementación está en
-`functions/task-agent/index.ts` y usa las herramientas de tareas bajo el JWT del usuario,
-así que las consultas respetan RLS. Gemini se llama solo desde la función.
+El frontend invoca `task-agent` con el JWT de la sesión. La implementación está en
+`functions/task-agent/index.ts`, valida el token contra `/auth/v1/user` y realiza las
+consultas con el JWT del usuario, así que las políticas RLS siguen aplicándose. Gemini
+se llama solo desde la función.
 
 Para desplegar desde el Dashboard:
 
 1. En **Edge Functions**, crea `task-agent` y pega el contenido de
    `functions/task-agent/index.ts` en el editor.
 2. Desactiva la verificación JWT del gateway para esta función, para que el preflight
-   `OPTIONS` llegue al handler. El handler valida cada `POST` con
-   `supabase.auth.getUser(jwt)` antes de ejecutar herramientas y usa ese JWT para las
-   consultas RLS; no procesa solicitudes sin una sesión válida.
+   `OPTIONS` llegue al handler. El handler valida cada `POST` consultando
+   `/auth/v1/user` con el JWT antes de ejecutar herramientas y rechaza sesiones inválidas.
 3. En **Edge Function Secrets**, añade `GEMINI_API_KEY` con tu clave de Google AI Studio.
-   Opcionalmente añade `GEMINI_MODEL=gemini-3.8-flash`.
+   El modelo predeterminado es `gemini-3.5-flash-lite`. `GEMINI_MODEL` es opcional; si
+   existe en los Secrets, su valor reemplaza el predeterminado. Para conservar el modelo
+   recomendado, elimina ese Secret o configúralo como `gemini-3.5-flash-lite`.
 4. Guarda y despliega la función. No pegues la llave en el código ni en Vercel.
 
 El runtime de Supabase inyecta `SUPABASE_URL` y la clave publishable/anon para inicializar

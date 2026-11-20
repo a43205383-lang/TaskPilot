@@ -4,33 +4,23 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckSquare2, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
 import { fetchProfiles } from '../auth/api'
-import { Button, EmptyState, ErrorState, Modal, PageHeader, Spinner } from '../shared/ui'
+import { Banner, Button, EmptyState, ErrorState, Modal, PageHeader, Spinner } from '../shared/ui'
 import {
   cn,
   DEFAULT_TIMEZONE,
+  errorMessage,
   TASK_PRIORITIES,
   TASK_PRIORITY_LABELS,
   TASK_STATUSES,
   TASK_STATUS_LABELS,
 } from '../shared/utils'
 import { useOnline } from '../shared/useOnline'
-import { createTask, deleteTask, fetchTasks, setTaskStatus, updateTask } from './api'
+import { createTask, deleteTask, setTaskStatus, updateTask } from './api'
+import { fetchTasksWithCache } from './cache'
 import { TaskCard } from './TaskCard'
 import { TaskForm } from './TaskForm'
 import type { Task, TaskFilters, TaskInput, TaskStatus, TaskView } from './types'
 import { countByView, filterTasks, taskViewFor, TASK_VIEWS } from './views'
-
-function cacheKey(userId: string): string {
-  return `tareas:tasks:${userId}`
-}
-
-function readCachedTasks(userId: string): Task[] {
-  try {
-    return JSON.parse(localStorage.getItem(cacheKey(userId)) ?? '[]') as Task[]
-  } catch {
-    return []
-  }
-}
 
 export function TasksPage() {
   const { session } = useAuth()
@@ -50,6 +40,8 @@ export function TasksPage() {
   const [editing, setEditing] = useState<Task | null>(null)
   const [deleting, setDeleting] = useState<Task | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -59,19 +51,8 @@ export function TasksPage() {
   }, [searchInput])
 
   const tasksQuery = useQuery({
-    queryKey: ['tasks'],
-    queryFn: async () => {
-      if (!online) return readCachedTasks(userId)
-      try {
-        const tasks = await fetchTasks()
-        localStorage.setItem(cacheKey(userId), JSON.stringify(tasks))
-        return tasks
-      } catch (error) {
-        const cachedTasks = readCachedTasks(userId)
-        if (cachedTasks.length > 0) return cachedTasks
-        throw error
-      }
-    },
+    queryKey: ['tasks', userId],
+    queryFn: () => fetchTasksWithCache(userId, online),
   })
 
   const profilesQuery = useQuery({
@@ -135,6 +116,11 @@ export function TasksPage() {
     setFormOpen(true)
   }
 
+  function askDelete(task: Task) {
+    setDeleteError(null)
+    setDeleting(task)
+  }
+
   async function handleSave(input: TaskInput) {
     if (editing) await updateTask(editing.id, input)
     else await createTask(input, userId)
@@ -145,9 +131,12 @@ export function TasksPage() {
 
   async function handleStatus(task: Task, status: TaskStatus) {
     setBusyId(task.id)
+    setActionError(null)
     try {
       await setTaskStatus(task.id, status)
       await refresh()
+    } catch (error) {
+      setActionError(errorMessage(error))
     } finally {
       setBusyId(null)
     }
@@ -156,10 +145,13 @@ export function TasksPage() {
   async function handleDelete() {
     if (!deleting) return
     setBusyId(deleting.id)
+    setDeleteError(null)
     try {
       await deleteTask(deleting.id)
       setDeleting(null)
       await refresh()
+    } catch (error) {
+      setDeleteError(errorMessage(error))
     } finally {
       setBusyId(null)
     }
@@ -299,6 +291,13 @@ export function TasksPage() {
         </div>
       ) : null}
 
+      {profilesQuery.isError ? (
+        <Banner tone="warning" title="No se pudieron cargar los responsables">
+          Puedes consultar tus tareas, pero la lista de responsables no está disponible ahora.
+        </Banner>
+      ) : null}
+      {actionError ? <Banner tone="error" title="No se pudo cambiar el estado">{actionError}</Banner> : null}
+
       {tasksQuery.isLoading ? <Spinner label="Cargando tus tareas…" /> : null}
       {tasksQuery.isError ? (
         <ErrorState
@@ -337,7 +336,7 @@ export function TasksPage() {
             timezone={timezone}
             profiles={profiles}
             onEdit={() => openEdit(task)}
-            onDelete={() => setDeleting(task)}
+            onDelete={() => askDelete(task)}
             onStatusChange={(status) => void handleStatus(task, status)}
           />
         ))}
@@ -379,6 +378,7 @@ export function TasksPage() {
         <p className="text-sm text-stone-600">
           ¿Eliminar «{deleting?.title}»? Esta acción no se puede deshacer.
         </p>
+        {deleteError ? <Banner tone="error" title="No se pudo eliminar la tarea">{deleteError}</Banner> : null}
       </Modal>
     </div>
   )
