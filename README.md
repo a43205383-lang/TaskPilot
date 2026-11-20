@@ -3,10 +3,10 @@
 PWA móvil donde la persona escribe en lenguaje natural lo que tiene pendiente y un
 agente con *tool calling* crea y gestiona tareas en Supabase.
 
-> **Estado actual:** las pantallas del frontend y el esquema/migraciones de Supabase
-> para tareas y chat están en el repo. El código de `task-agent` ya está preparado en
-> `supabase/functions/task-agent/`; falta desplegarlo y configurar `GEMINI_API_KEY` como
-> Secret en Supabase. Las pruebas de integración siguen pendientes.
+> **Estado actual:** frontend publicado en Vercel, Edge Function `task-agent` desplegada
+> en Supabase y migraciones aplicadas al proyecto. El usuario confirmó las pruebas
+> manuales de autenticación, aislamiento RLS, gestión de tareas y fechas relativas.
+> El checklist RF completo está al final de este documento.
 
 ## Stack
 
@@ -67,16 +67,14 @@ chat_messages(id uuid PK, user_id uuid -> auth.users,
 RLS: el empleado ve y modifica solo sus filas; el supervisor lee todas las tareas
 y puede actualizar `assignee_id`. El frontend **no usa `service_role`**.
 
-### Edge Function `task-agent` (verify_jwt = true)
+### Edge Function `task-agent`
 
 Request:
 
 ```json
 {
   "message": "cobrarle a Juan el viernes y cotización a Ana mañana, urgente",
-  "context": { "timezone": "America/Santo_Domingo", "today": "2026-11-19" },
-  "confirm": false,
-  "selected_task_id": null
+  "context": { "timezone": "America/Santo_Domingo", "today": "2026-11-20" }
 }
 ```
 
@@ -89,46 +87,53 @@ Response:
     { "type": "created", "task_id": "<uuid>", "title": "Cobrar a Juan" },
     { "type": "created", "task_id": "<uuid>", "title": "Cotización a Ana" }
   ],
-  "clarification": { "question": "¿Cuál de las dos de Juan?", "options": [{ "id": "<uuid>", "title": "Cobrar a Juan" }] },
-  "confirmation": { "message": "¿Eliminar la tarea de Juan?", "task_ids": ["<uuid>"] }
+  "clarification": {
+    "question": "Encontré varias tareas que coinciden. ¿Cuál quieres cambiar?",
+    "action": "complete_task",
+    "options": [{ "id": "<uuid>", "title": "Cobrar a Juan" }]
+  }
 }
 ```
 
-`clarification` y `confirmation` son opcionales. El modelo **no escribe** en la
-base de datos: la Edge Function ejecuta y valida cada herramienta
-(`crear_tarea`, `listar_tareas`, `actualizar_tarea`, `completar_tarea`) con el JWT
-del usuario. La llave de IA vive en Secrets. El frontend guarda los mensajes en
-`chat_messages` por sí mismo; la función no debe duplicarlos.
+`clarification` y `confirmation` son opcionales. Una petición de borrado devuelve
+`confirmation` con `task_ids`; la función borra solo cuando el usuario confirma.
+La respuesta final incluye `actions` con cada tarea creada, actualizada, completada
+o eliminada. El modelo **no escribe** en la base de datos: la Edge Function ejecuta
+y valida `create_task`, `list_tasks`, `update_task`, `complete_task` y `delete_task`
+con el JWT del usuario. La llave Gemini vive en Supabase Secrets. El frontend guarda
+los mensajes en `chat_messages`; la función no los duplica.
 
-## Cobertura de requerimientos (frontend)
+## Cobertura de requerimientos
 
-| RF | Estado |
+| RF | Estado y alcance |
 |---|---|
-| 01, 02 | ✅ Login/registro y rutas protegidas |
-| 04 | ✅ Nombre y rol visibles en el encabezado |
-| 05, 07, 08, 10 | ✅ Alta/edición/borrado con confirmación, cambio de estado a un toque, validación junto al campo |
-| 06 | ✅ Cuatro vistas por fecha y estado |
-| 09, 11 | ✅ Filtros combinables, búsqueda con debounce, etiquetas |
-| 12–18 | ✅ Chat, varias tareas por mensaje, resumen con enlace a cada tarea, confirmación, errores con reintento y "crear a mano", zona horaria |
-| 20, 21 | ✅ Historial persistido y dictado por voz (Web Speech API) |
-| 22–25 | ✅ 360 px, manifest + iconos 192/512, service worker, estados de carga/vacío/error, caché de últimas tareas y aviso "sin conexión" |
-| 26 | ⚠️ Notificaciones push: pendiente |
-| 27–29 | ⚠️ Deploy, llave en backend y migraciones: pendiente (backend) |
-| 30 | ⚠️ Pruebas automáticas: pendiente |
-| Cambio sorpresa | ✅ Rol supervisor: bandeja global, asignación y filtro por persona |
-| 28 (llave IA) | ✅ Nunca se envía al navegador; se invoca la Edge Function |
+| 01–03 | ✅ Registro/inicio de sesión, rutas protegidas y aislamiento RLS. El usuario verificó también acceso directo a la API entre dos usuarios. |
+| 04–11 | ✅ Roles, CRUD manual de tareas, persistencia, estados, prioridades, vistas, búsqueda, filtros, etiquetas y validación de campos. |
+| 12–18 | ✅ Chat en lenguaje natural, herramientas server-side, historial, selección ante tareas ambiguas, confirmación antes de borrar, resumen de acciones y enlaces a tareas. |
+| 19 | ✅ Fechas relativas usan la zona configurada. El usuario comprobó «mañana» y «el viernes» en `America/Santo_Domingo`. |
+| 20–21 | ✅ Historial del chat y dictado por voz mediante Web Speech API, con permiso del navegador. |
+| 22 | ✅ Layout revisado para 360 px, botones táctiles ampliados y contenido adaptable sin scroll horizontal de página. |
+| 23 | ✅ Manifest, iconos 192×192 y 512×512, service worker y modo `standalone`. |
+| 24 | ✅ Shell y archivos estáticos precargados; perfil y tareas recientes se conservan localmente y se muestra el aviso sin conexión. |
+| 25 | ✅ Estados de carga, vacío y error; errores de consulta y de acciones tienen mensajes visibles. |
+| 26 (deseable) | 🟡 Notificación local una hora antes, si se concede permiso y la app permanece abierta/activa. No es Web Push y no garantiza avisos con la app cerrada. |
+| 27 | ✅ El agente ejecuta herramientas de tareas desde la Edge Function bajo el JWT del usuario. |
+| 28 | ✅ La clave Gemini está en Supabase Secrets; no se incluye en el bundle ni en las peticiones del navegador. |
+| 29 | ✅ Esquema versionado en `supabase/migrations/`; los tres scripts recrean tablas, enums, funciones, triggers e RLS en Supabase nuevo. |
+| Cambio sorpresa | ✅ Supervisor: bandeja global de tareas, asignación y filtro por persona. |
+
+Las pruebas automatizadas no están configuradas; las verificaciones indicadas arriba
+son revisiones de código y pruebas manuales reportadas por el usuario.
 
 ## Modo sin conexión
 
-El service worker precachea el shell. Las últimas tareas se guardan en
-`localStorage` (`tareas:tasks:<uid>`) tras cada carga y se muestran con un aviso
-cuando `navigator.onLine` es falso. Las peticiones a Supabase nunca se cachean en
-el service worker.
+El service worker precachea el shell y los recursos compilados. Las últimas tareas
+y el perfil se guardan por usuario en `localStorage`; al perder conexión se muestran
+las tareas guardadas y el aviso «Sin conexión». Las peticiones a Supabase nunca se
+cachean en el service worker. Cerrar sesión borra las cachés locales de TaskPilot.
 
-## Pendientes
+## Antes de publicar cambios locales
 
-- Desplegar Edge Function `task-agent` y configurar `GEMINI_API_KEY` como Secret.
-- Aplicar las migraciones en un proyecto Supabase de desarrollo y verificar auth/RLS.
-- Usuarios de prueba, deploy a URL pública, video de 3–5 min y revisiones.
-- Pruebas automáticas de fechas relativas y herramientas del agente.
-- Notificaciones push (deseable).
+- Desplegar en Vercel los cambios recientes de frontend y service worker.
+- Si cambia `supabase/functions/task-agent/index.ts`, actualizar y desplegar la función en Supabase.
+- Para notificaciones con la app cerrada, implementar Web Push con suscripciones y envío server-side; RF26 actual es local y requiere la app activa.
